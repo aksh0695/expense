@@ -1,5 +1,6 @@
 package com.backend.expense.controller;
 
+import com.backend.expense.Model.ResponseModel;
 import com.backend.expense.Repository.UserRepository;
 import com.backend.expense.constants.Endpoints;
 import com.backend.expense.entity.User;
@@ -44,5 +45,24 @@ public class UserController {
 
         User res = userRepository.save(user);
         return ResponseEntity.ok(res.toString());
+    }
+    
+    @PostMapping("/authenticate")
+    private ResponseEntity<ResponseModel> authenticateUser(@RequestBody User user) throws Exception{
+    	ResponseModel<User> responseModel = new ResponseModel();
+    	List<User> input = userRepository.findByEmail(user.getEmail());
+    	if(input.size() > 0 && input.get(0).getPassword().equals(user.getPassword())) {
+    		
+    		responseModel.setHttpStatus(HttpStatus.OK);
+    		responseModel.setResponseMessage("Successfully Authenticated");
+    		responseModel.setResponseStatus("SUCCESS");
+    		responseModel.setResponseBody(input.get(0));
+    		return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+    	}else {
+    		responseModel.setHttpStatus(HttpStatus.UNAUTHORIZED);
+    		responseModel.setResponseMessage("Invalid Credentials Provided");
+    		responseModel.setResponseStatus("FAILURE");
+    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseModel);
+    	}
     }
 }

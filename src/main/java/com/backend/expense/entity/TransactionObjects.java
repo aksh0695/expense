@@ -15,6 +15,8 @@ public class TransactionObjects {
     private String transactionCategory;
 
     private double trasactionCost;
+    
+    private String transactionSource;
 
     public BigInteger getTransactionId() {
         return transactionId;
@@ -64,15 +66,20 @@ public class TransactionObjects {
         this.trasactionCost = trasactionCost;
     }
 
-    @Override
-    public String toString() {
-        return "TransactionObjects{" +
-                "transactionId=" + transactionId +
-                ", transactionDate=" + transactionDate +
-                ", transactionType=" + transactionType +
-                ", transactionDetail='" + transactionDetail + '\'' +
-                ", transactionCategory='" + transactionCategory + '\'' +
-                ", trasactionCost=" + trasactionCost +
-                '}';
-    }
+    public String getTransactionSource() {
+		return transactionSource;
+	}
+
+	public void setTransactionSource(String transactionSource) {
+		this.transactionSource = transactionSource;
+	}
+
+	@Override
+	public String toString() {
+		return "TransactionObjects [transactionId=" + transactionId + ", transactionDate=" + transactionDate
+				+ ", transactionType=" + transactionType + ", transactionDetail=" + transactionDetail
+				+ ", transactionCategory=" + transactionCategory + ", trasactionCost=" + trasactionCost
+				+ ", transactionSource=" + transactionSource + "]";
+	}
+
 }

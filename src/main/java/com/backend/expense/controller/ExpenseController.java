@@ -1,5 +1,6 @@
 package com.backend.expense.controller;
 
+import com.backend.expense.Model.ResponseModel;
 import com.backend.expense.Repository.ExpenseRepository;
 import com.backend.expense.Repository.UserRepository;
 import com.backend.expense.constants.Endpoints;
@@ -11,6 +12,7 @@ import com.backend.expense.service.SplitwiseService;
 import com.backend.expense.utils.SplitwiseClient;
 import com.github.scribejava.core.model.Verb;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +55,8 @@ public class ExpenseController {
         return ResponseEntity.ok(res.toString());
     }
     @GetMapping("/all/{id}")
-    private ResponseEntity<List<TransactionObjects>> getExpenses(@PathVariable Integer id) throws Exception {
+    private ResponseEntity<ResponseModel> getExpenses(@PathVariable Integer id) throws Exception {
+    	ResponseModel<List<TransactionObjects>> responseModel = new ResponseModel<List<TransactionObjects>>();
         User user = userRepository.getById(id);
         ResponseEntity<Object> spliwiseExpenses = splitwiseService.getExpensesForUser(user);
            List<LinkedHashMap> expensesList = (List<LinkedHashMap>) ((LinkedHashMap)spliwiseExpenses.getBody()).get("expenses");
@@ -67,6 +70,7 @@ public class ExpenseController {
                transactionObjects.setTransactionDate(sdf.parse((String)expense.get("date")));
                transactionObjects.setTrasactionCost(Double.valueOf( (String)expense.get("cost")));
                transactionObjects.setTransactionCategory((String) ((LinkedHashMap)expense.get("category")).get("name"));
+               transactionObjects.setTransactionSource("Splitwise");
                transactionData.add(transactionObjects);
            }
         List<Expense> expenses = expenseRepository.findByUserId(user.getUserId());
@@ -78,8 +82,14 @@ public class ExpenseController {
             transactionObjects.setTransactionType(expense.getTransactionType());
             transactionObjects.setTransactionCategory(expense.getCategory());
             transactionObjects.setTrasactionCost(expense.getCost());
+            transactionObjects.setTransactionSource("Expense App");
             transactionData.add(transactionObjects);
         }
-        return ResponseEntity.ok(transactionData);
+        responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully retrieved user details");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody(transactionData);
+		return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+  
     }
 }
