@@ -54,6 +54,58 @@ public class ExpenseController {
         Expense res = expenseRepository.save(expense);
         return ResponseEntity.ok(res.toString());
     }
+    
+    @PutMapping("/update")
+    private ResponseEntity<ResponseModel<TransactionObjects>> updateExpense(@RequestBody TransactionObjects transactionObject){
+    	System.out.println(transactionObject.toString());
+    	
+    	User user = userRepository.getById(transactionObject.getUserId());
+    	
+    	Expense expenseRecord = new Expense();
+    	expenseRecord.setId(Integer.parseInt(String.valueOf(transactionObject.getTransactionId())));
+    	expenseRecord.setCategory(transactionObject.getTransactionCategory());
+    	expenseRecord.setCost(transactionObject.getTrasactionCost());
+    	expenseRecord.setDetail(transactionObject.getTransactionDetail());
+    	expenseRecord.setTransactionDate(transactionObject.getTransactionDate());
+    	expenseRecord.setTransactionType(transactionObject.getTransactionType());
+    	expenseRecord.setUser(user);
+    	
+    	Expense response = expenseRepository.saveAndFlush(expenseRecord);
+    	TransactionObjects transactionObjects = new TransactionObjects();
+        transactionObjects.setTransactionDetail(response.getDetail());
+        transactionObjects.setTransactionId(BigInteger.valueOf(response.getId().intValue()));
+        transactionObjects.setTransactionDate(response.getTransactionDate());
+        transactionObjects.setTransactionType(response.getTransactionType());
+        transactionObjects.setTransactionCategory(response.getCategory());
+        transactionObjects.setTrasactionCost(response.getCost());
+        transactionObjects.setUserId(user.getUserId());
+        transactionObjects.setTransactionSource("Expense App");
+    	
+    	ResponseModel<TransactionObjects> responseModel = new ResponseModel<TransactionObjects>();
+    	responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully saved expense details");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody(transactionObjects);
+		
+    	return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+    }
+    
+    @PutMapping("/delete")
+    private ResponseEntity<ResponseModel> deleteExpense(@RequestBody TransactionObjects transactionObject){
+    	
+    	System.out.println("Expense ID to be deleted : " + String.valueOf(transactionObject.getTransactionId()));
+    	expenseRepository.deleteById(Integer.parseInt(String.valueOf(transactionObject.getTransactionId())));
+    	
+    	ResponseModel<String> responseModel = new ResponseModel<String>();
+    	responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully deleted expense details");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody("Deleted Expense");
+		
+    	return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+    	
+    }
+    
     @GetMapping("/all/{id}")
     private ResponseEntity<ResponseModel> getExpenses(@PathVariable Integer id) throws Exception {
     	ResponseModel<List<TransactionObjects>> responseModel = new ResponseModel<List<TransactionObjects>>();
@@ -71,6 +123,7 @@ public class ExpenseController {
                transactionObjects.setTrasactionCost(Double.valueOf( (String)expense.get("cost")));
                transactionObjects.setTransactionCategory((String) ((LinkedHashMap)expense.get("category")).get("name"));
                transactionObjects.setTransactionSource("Splitwise");
+               transactionObjects.setUserId(user.getUserId());
                transactionData.add(transactionObjects);
            }
         List<Expense> expenses = expenseRepository.findByUserId(user.getUserId());
@@ -83,6 +136,7 @@ public class ExpenseController {
             transactionObjects.setTransactionCategory(expense.getCategory());
             transactionObjects.setTrasactionCost(expense.getCost());
             transactionObjects.setTransactionSource("Expense App");
+            transactionObjects.setUserId(user.getUserId());
             transactionData.add(transactionObjects);
         }
         responseModel.setHttpStatus(HttpStatus.OK);

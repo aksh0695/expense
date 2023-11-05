@@ -12,4 +12,5 @@ public interface ExpenseRepository extends JpaRepository<Expense,Integer> {
 
     @Query(value = "SELECT * FROM expense WHERE   user_user_id = ?1", nativeQuery = true)
     List<Expense> findByUserId(Integer userId);
+    
 }
