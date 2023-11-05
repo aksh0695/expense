@@ -14,7 +14,7 @@
 	<name>expense</name>
 	<description>Project for expense tracker backend</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>8</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -63,7 +63,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.34</version>
+			<version>8.0.28</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
