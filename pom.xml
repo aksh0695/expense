@@ -76,12 +76,29 @@
 			<version>2.2</version>
 		</dependency>
 	</dependencies>
-
+	
+	<packaging>jar</packaging>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+                    <mainClass>com.backend.expense.ExpenseApplication</mainClass>
+                </configuration>
+                <executions>
+        <execution>
+            <goals>
+                <goal>repackage</goal>
+            </goals>
+            <configuration>
+                <classifier>spring-boot</classifier>
+                <mainClass>
+                  com.backend.expense.ExpenseApplication
+                </mainClass>
+            </configuration>
+        </execution>
+    </executions>
 			</plugin>
 		</plugins>
 	</build>

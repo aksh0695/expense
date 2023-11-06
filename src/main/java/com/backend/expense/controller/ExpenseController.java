@@ -28,7 +28,8 @@ import java.util.Locale;
 
 @CrossOrigin(
         origins = {
-                "http://localhost:4200"
+        		"http://localhost:4200",
+        		"http://localhost:8080"
         },
         methods = {
                 RequestMethod.OPTIONS,
