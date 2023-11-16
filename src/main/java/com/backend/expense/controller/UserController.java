@@ -42,10 +42,14 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    private ResponseEntity<String> createUser(@RequestBody User user) throws Exception {
-
+    private ResponseEntity<ResponseModel<User>> createUser(@RequestBody User user) throws Exception {
+    	ResponseModel<User> responseModel = new ResponseModel();
         User res = userRepository.save(user);
-        return ResponseEntity.ok(res.toString());
+        responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully Created User");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody(res);
+		return ResponseEntity.status(HttpStatus.OK).body(responseModel);
     }
     
     @PostMapping("/authenticate")
