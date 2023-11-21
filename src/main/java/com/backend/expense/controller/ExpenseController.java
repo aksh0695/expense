@@ -51,9 +51,38 @@ public class ExpenseController {
     SplitwiseService splitwiseService;
 
     @PostMapping("/create")
-    private ResponseEntity<String> createExpense(@RequestBody Expense expense){
-        Expense res = expenseRepository.save(expense);
-        return ResponseEntity.ok(res.toString());
+    private ResponseEntity<ResponseModel<TransactionObjects>> createExpense(@RequestBody TransactionObjects transactionObject){
+    	System.out.println(transactionObject.toString());
+    	User user = userRepository.getById(transactionObject.getUserId());
+    	
+    	Expense expenseRecord = new Expense();
+    	expenseRecord.setCategory("General");
+    	expenseRecord.setCost(transactionObject.getTrasactionCost());
+    	expenseRecord.setDetail(transactionObject.getTransactionDetail());
+    	expenseRecord.setTransactionDate(transactionObject.getTransactionDate());
+    	expenseRecord.setTransactionType(transactionObject.getTransactionType());
+    	expenseRecord.setUser(user);
+        Expense response = expenseRepository.save(expenseRecord);
+        
+        TransactionObjects transactionObjects = new TransactionObjects();
+        transactionObjects.setTransactionDetail(response.getDetail());
+        transactionObjects.setTransactionId(BigInteger.valueOf(response.getId().intValue()));
+        transactionObjects.setTransactionDate(response.getTransactionDate());
+        transactionObjects.setTransactionType(response.getTransactionType());
+        transactionObjects.setTransactionCategory(response.getCategory());
+        transactionObjects.setTrasactionCost(response.getCost());
+        transactionObjects.setUserId(user.getUserId());
+        transactionObjects.setTransactionSource("Expense App");
+    	
+    	ResponseModel<TransactionObjects> responseModel = new ResponseModel<TransactionObjects>();
+    	responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully saved transaction details");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody(transactionObjects);
+		
+    	return ResponseEntity.status(HttpStatus.OK).body(responseModel);
+        
+        
     }
     
     @PutMapping("/update")
@@ -146,5 +175,53 @@ public class ExpenseController {
 		responseModel.setResponseBody(transactionData);
 		return ResponseEntity.status(HttpStatus.OK).body(responseModel);
   
+    }
+    
+    @GetMapping("/home/{id}")
+    private ResponseEntity<ResponseModel> getCurrentMonthDetails(@PathVariable Integer id) throws Exception{
+    	ResponseModel<List<TransactionObjects>> responseModel = new ResponseModel<List<TransactionObjects>>();
+        User user = userRepository.getById(id);
+        Date currentDate = new Date();
+        int currentMonth = currentDate.getMonth();
+        ResponseEntity<Object> spliwiseExpenses = splitwiseService.getExpensesForUser(user);
+           List<LinkedHashMap> expensesList = (List<LinkedHashMap>) ((LinkedHashMap)spliwiseExpenses.getBody()).get("expenses");
+           List<TransactionObjects> transactionData = new ArrayList<>();
+           for(LinkedHashMap expense : expensesList){
+               TransactionObjects transactionObjects = new TransactionObjects();
+               final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+               transactionObjects.setTransactionDate(sdf.parse((String)expense.get("date")));
+               if(!(sdf.parse((String)expense.get("date")).getMonth() == currentMonth)) {
+            	   continue;
+               }
+               transactionObjects.setTransactionId(BigInteger.valueOf((Long) expense.get("id")));
+               transactionObjects.setTransactionDetail((String) expense.get("description"));
+               transactionObjects.setTransactionType(TransactionType.EXPENSE);               
+               transactionObjects.setTrasactionCost(Double.valueOf( (String)expense.get("cost")));
+               transactionObjects.setTransactionCategory((String) ((LinkedHashMap)expense.get("category")).get("name"));
+               transactionObjects.setTransactionSource("Splitwise");
+               transactionObjects.setUserId(user.getUserId());
+               transactionData.add(transactionObjects);
+           }
+        List<Expense> expenses = expenseRepository.findByUserId(user.getUserId());
+        for(Expense expense : expenses){
+        	if(!(expense.getTransactionDate().getMonth() == currentMonth)) {
+        		continue;
+        	}
+            TransactionObjects transactionObjects = new TransactionObjects();
+            transactionObjects.setTransactionDetail(expense.getDetail());
+            transactionObjects.setTransactionId(BigInteger.valueOf(expense.getId().intValue()));
+            transactionObjects.setTransactionDate(expense.getTransactionDate());
+            transactionObjects.setTransactionType(expense.getTransactionType());
+            transactionObjects.setTransactionCategory(expense.getCategory());
+            transactionObjects.setTrasactionCost(expense.getCost());
+            transactionObjects.setTransactionSource("Expense App");
+            transactionObjects.setUserId(user.getUserId());
+            transactionData.add(transactionObjects);
+        }
+        responseModel.setHttpStatus(HttpStatus.OK);
+		responseModel.setResponseMessage("Successfully retrieved user details");
+		responseModel.setResponseStatus("SUCCESS");
+		responseModel.setResponseBody(transactionData);
+		return ResponseEntity.status(HttpStatus.OK).body(responseModel);
     }
 }
